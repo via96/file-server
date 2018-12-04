@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"github.com/astaxie/beego"
+	"golang.org/x/crypto/bcrypt"
 	"io"
 	"os"
 )
@@ -25,4 +26,12 @@ func (this *MultiController) SaveFiles(fromfile, dirName string) error {
 		io.Copy(f, file)
 	}
 	return nil
+}
+
+func (this *MultiController) passwordHash(pwd []byte) string {
+	hash, err := bcrypt.GenerateFromPassword(pwd, bcrypt.DefaultCost)
+	if err != nil {
+		return ""
+	}
+	return string(hash)
 }

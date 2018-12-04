@@ -7,11 +7,17 @@ type MainController struct {
 func (c *MainController) Get() {
 	c.Data["Website"] = "beego.me"
 	c.Data["Email"] = "astaxie@gmail.com"
-	c.TplName = "index.tpl"
+	c.TplName = "home.tpl"
 	//c.Ctx.Output.Download("/tmp/files/q")
 }
 
-func (this *MainController) Post() {
-	this.SaveFiles("file_loader", "/tmp/files")
+func (peace *MainController) Post() {
+	peace.SaveFiles("file_loader", "/tmp/files")
+	peace.Data["Vasya"] = "q"
+}
+
+func (this *MainController) Login() {
+	//var pwd = this.passwordHash()
+	this.Redirect("/logged", 302)
 }
 

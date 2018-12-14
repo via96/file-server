@@ -1,6 +1,10 @@
 package models
 
-import "github.com/astaxie/beego/orm"
+import (
+	"beego-fileServer/models"
+	"file-server/controllers"
+	"github.com/astaxie/beego/orm"
+)
 
 type User struct {
 	Id int64 `form:"-"`
@@ -22,4 +26,38 @@ func init() {
 
 	orm.RegisterModel(new(User))
 	orm.RegisterModel(new(File))
+}
+
+func addFile(name string, path string)  {
+	o := orm.NewOrm()
+	o.Using("default")
+
+}
+
+func getCurrentUser(this *controllers.MultiController) models.User {
+	sess := this.StartSession()
+	defer sess.SessionRelease(this.Ctx.ResponseWriter)
+	userId := sess.Get("userId")
+	o := orm.NewOrm()
+	o.Using("default")
+	var user models.User
+
+	if err := o.QueryTable(new(models.User)).Filter("id", userId).One(&user); err != nil {
+		this.Redirect("/login", 302)
+	}
+	return user
+}
+
+func getFileList(this *controllers.MultiController)  {
+	sess := this.StartSession()
+	defer sess.SessionRelease(this.Ctx.ResponseWriter)
+	userId := sess.Get("userId")
+	o := orm.NewOrm()
+	o.Using("default")
+	var params []orm.ParamsList
+	if num, err:= o.QueryTable(new(models.File)).Filter("id", userId).ValuesList(&params);  err == nil && num > 0 {
+		for val := range params {
+
+		}
+	}
 }

@@ -12,6 +12,13 @@
         <input type="text" name="username" placeholder="Username" required>
         <input type="password" name="password" placeholder="Password" required>
         <input type="submit" value="Login">
+        <input type="submit" value="Register">
+    </form>
+    <form action="/" method="POST" enctype="multipart/form-data">
+        <input type="text" name="username" placeholder="Username" required>
+        <input type="password" name="password" placeholder="Password" required>
+        <input type="password" name="repassword" placeholder="RepeatPassword" required>
+        <input type="submit" value="Register">
     </form>
 </body>
 </html>

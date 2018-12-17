@@ -2,9 +2,11 @@ package controllers
 
 import (
 	"github.com/astaxie/beego"
+	"github.com/astaxie/beego/orm"
 	"golang.org/x/crypto/bcrypt"
 	"io"
 	"os"
+	"file-server/models"
 )
 
 type MultiController struct {
@@ -26,6 +28,40 @@ func (this *MultiController) SaveFiles(fromfile, dirName string) error {
 		io.Copy(f, file)
 	}
 	return nil
+}
+
+func getORM() orm.Ormer  {
+	o := orm.NewOrm()
+	o.Using("default")
+	return o
+}
+
+func (this *MultiController) isUserLogedIn() bool {
+	sess := this.StartSession()
+	defer sess.SessionRelease(this.Ctx.ResponseWriter)
+	userId := sess.Get("userId")
+	return userId != nil
+}
+
+func (this *MultiController) userExists(userId int) bool {
+	sess := this.StartSession()
+	defer sess.SessionRelease(this.Ctx.ResponseWriter)
+	id := sess.Get("userId")
+	return userId == id
+}
+
+func (this *MultiController) getCurrentUser() models.User {
+	sess := this.StartSession()
+	defer sess.SessionRelease(this.Ctx.ResponseWriter)
+	userId := sess.Get("userId")
+	o := orm.NewOrm()
+	o.Using("default")
+	var user models.User
+
+	if err := o.QueryTable(new(models.User)).Filter("id", userId).One(&user); err != nil {
+		this.Redirect("/login", 302)
+	}
+	return user
 }
 
 func (this *MultiController) passwordHash(pwd []byte) string {

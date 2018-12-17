@@ -3,6 +3,7 @@ package models
 import (
 	"beego-fileServer/models"
 	"file-server/controllers"
+	_ "github.com/astaxie/beego"
 	"github.com/astaxie/beego/orm"
 )
 
@@ -18,6 +19,13 @@ type File struct {
 	Hash string `form:"hash,text,hash:" valid:"MinSize(1);MaxSize(100)"`
 	Path string `form:"path,text,path:" valid:"MinSize(1);MaxSize(200)"`
 	UserId int64 `form:"userId,integer,userId:"`
+}
+
+type Link struct {
+	UserId int64
+	FileId int64
+	UserFileName string
+	UploadTime string
 }
 
 func init() {
@@ -55,9 +63,10 @@ func getFileList(this *controllers.MultiController)  {
 	o := orm.NewOrm()
 	o.Using("default")
 	var params []orm.ParamsList
+	var fileList []File
 	if num, err:= o.QueryTable(new(models.File)).Filter("id", userId).ValuesList(&params);  err == nil && num > 0 {
 		for val := range params {
-
+			print(val)
 		}
 	}
 }

@@ -1,7 +1,6 @@
 package controllers
 
 import (
-	"beego-fileServer/models/helpers"
 	"file-server/models"
 	"strings"
 )
@@ -15,42 +14,41 @@ func (this *LoginController) Get() {
 
 	if this.isUserLogedIn() {
 		curUser := this.getCurrentUser()
-		this.Redirect("/user/" + curUser.Login, 302)
-	} else {
-		this.Redirect("/login", 302)
+		this.Redirect("/user/"+curUser.Login, 302)
 	}
-}
-
-func (this *LoginController) Post() {
-
+	this.Redirect("/login", 302)
+	//this.TplName = "login.tpl"
 }
 
 func (this *LoginController) Login() {
 	this.TplName = "login.tpl"
 	if this.isUserLogedIn() {
-		// редирект на страницу пользователя
+		curUser := this.getCurrentUser()
+		this.Redirect("/user/"+curUser.Login, 302)
 	}
 
 	if this.Ctx.Input.Method() == "GET" {
+		print("!!!! LOGIN GET !!!!")
 		return
 	}
-
-	login := this.GetString("login", "")
+	print("!!!! LOGIN POST !!!!")
+	login := this.GetString("username_log", "")
 	pass := this.GetString("password", "")
 	hashPass := this.passwordHash([]byte(pass))
 
-	var o = helpers.GetORM()
+	var o = this.getORM()
 
 	var user models.User
 	err := o.QueryTable(new(models.User)).Filter("login", login).Filter("password", hashPass).One(&user)
 
-	if err != nil {
+	if err == nil {
 		var sess = this.StartSession()
 		defer sess.SessionRelease(this.Ctx.ResponseWriter)
 		sess.Set("userId", user.Id)
-		// редирект на страницу пользователя
+		curUser := this.getCurrentUser()
+		this.Redirect("/user/"+curUser.Login, 302)
 	} else {
-		this.Data["error"] = "Неверное имя пользователя или пароль"
+		this.Data["Error"] = "Неверное имя пользователя или пароль"
 	}
 
 }
@@ -67,20 +65,21 @@ func (this *LoginController) Register() {
 		this.Redirect("/", 302)
 	}
 	if this.Ctx.Input.Method() == "GET" {
+		print("!!!! REGISTER GET !!!!")
 		return
 	}
+	print("!!!! REGISTER POST !!!!")
+	this.TplName = "login.tpl"
 
-	this.TplName = "register.tpl"
-
-	login := this.GetString("login", "")
+	login := this.GetString("username_reg", "")
 	pass := this.GetString("password", "")
 	repass := this.GetString("repassword", "")
 
-	o := helpers.GetORM()
+	o := this.getORM()
 	login = strings.ToLower(login)
 	exist := o.QueryTable(new(models.User)).Filter("login", login).Exist()
 	if exist {
-		this.Data["error"] = "Пользователь с таким именем уже существует"
+		this.Data["Error"] = "Пользователь с таким именем уже существует"
 		return
 	}
 
@@ -92,7 +91,7 @@ func (this *LoginController) Register() {
 			sess := this.StartSession()
 			defer sess.SessionRelease(this.Ctx.ResponseWriter)
 			sess.Set("userId", id)
-			// редирект на страницу пользователя
+			this.Redirect("/", 302)
 		} else {
 			this.Data["Error"] = err
 		}

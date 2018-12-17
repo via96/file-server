@@ -8,21 +8,44 @@
     <title>Document</title>
 </head>
 <body>
-    {{if .currentUser}}
-        <label>{{.currentUserName}}</label><br>
-        <input type="button" value="Logout">
-    {{else}}
-        <form action="/login" method="POST" enctype="multipart/form-data">
-            <input type="text" name="username" placeholder="Username" required>
-            <input type="password" name="password" placeholder="Password" required>
-            <input type="submit" value="Login">
+    {{if .CurrentUser}}
+        <form action="/logout" method="POST" enctype="multipart/form-data">
+            <label>{{.CurrentUser.Login}}</label>
+            <input type="submit" value="Logout">
         </form>
     {{end}}
 
-    <form action="/" method="POST" enctype="multipart/form-data">
+    {{ if .Error }}
+        <p>{{.Error}}</p>
+    {{ end }}
+    <form action="/upload" method="POST" enctype="multipart/form-data">
         <input type="file" name="file_loader" multiple>
         <input type="submit">
     </form>
+    <table>
+    {{ if .Files}}
+        <thead>
+        <tr>
+            <td>File name</td>
+            <td>Upload time</td>
+            <td></td>
+            <td></td>
+        </tr>
+        </thead>
+        <tbody>
+        {{range $key, $val := .Files}}
+        <tr>
 
+            <td>{{$val.UserFileName}}</td>
+            <td>{{$val.UploadTime}}</td>
+            <td><a href="/download/{{$val.Id}}">Download</a></td>
+
+            <td><a href="/remove/{{$val.Id}}">Remove</a></td>
+        </tr>
+        {{end}}
+        </tbody>
+    {{end}}
+
+    </table>
 </body>
 </html>

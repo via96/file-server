@@ -8,14 +8,16 @@
     <title>Document</title>
 </head>
 <body>
-    <form action="/" method="POST" enctype="multipart/form-data">
-        <input type="text" name="username" placeholder="Username" required>
+    {{ if .Error }}
+            <p>{{.Error}}</p>
+    {{ end }}
+    <form action="/login" method="POST" enctype="multipart/form-data">
+        <input type="text" name="username_log" placeholder="Username" required>
         <input type="password" name="password" placeholder="Password" required>
         <input type="submit" value="Login">
-        <input type="submit" value="Register">
     </form>
-    <form action="/" method="POST" enctype="multipart/form-data">
-        <input type="text" name="username" placeholder="Username" required>
+    <form action="/register" method="POST" enctype="multipart/form-data">
+        <input type="text" name="username_reg" placeholder="Username" required>
         <input type="password" name="password" placeholder="Password" required>
         <input type="password" name="repassword" placeholder="RepeatPassword" required>
         <input type="submit" value="Register">

@@ -1,14 +1,10 @@
 package controllers
 
 import (
-	"beego-fileServer/models/helpers"
-	"crypto"
-	"crypto/md5"
-	"encoding/hex"
+	_ "beego-fileServer/models/helpers"
 	"file-server/models"
-	"github.com/astaxie/beego/orm"
-	"io/ioutil"
-	"mime/multipart"
+	_ "github.com/astaxie/beego/orm"
+	"os"
 )
 
 type UserController struct {
@@ -27,104 +23,78 @@ func (this *UserController) Post() {
 
 }
 
+func (this *UserController) Logout() {
+	sess := this.StartSession()
+	sess.Delete("userId")
+	sess.SessionRelease(this.Ctx.ResponseWriter)
+	this.Redirect("/", 302)
+}
+
 func (this *UserController) List() {
-	var user = helpers.GetCurrentUser(&this.Controller)
-	var o = helpers.GetORM()
+	var user = this.getCurrentUser()
+	var o = this.getORM()
 	this.TplName = "home.tpl"
-	//this.Data["items"] = user.Files
+	this.Data["CurrentUser"] = user
 
-	//var files []*models.File
-	//o.QueryTable(new(models.UserFile)).Filter("user_id", user.Id).OrderBy("upload_time").All(&files)
-	//
-	qb, _ := orm.NewQueryBuilder("mysql")
-	qb.Select(
-		"users_files.user_id",
-		"users_files.file_id",
-		"users_files.user_file_name",
-		"users_files.upload_time",).
-		From("users_files").
-		InnerJoin("files").On("users_files.file_id = files.id").
-		Where("users_files.user_id = ?").
-		OrderBy("users_files.upload_time")
+	var links []models.Link
+	o.QueryTable(new(models.Link)).Filter("user_id", user.Id).OrderBy("upload_time").All(&links)
 
-	var userFiles []models.Link
-
-	sql := qb.String()
-	o.Raw(sql, user.Id).QueryRows(&userFiles)
-
-	this.Data["Files"] = userFiles
-	this.Data["Val"] = len(userFiles)
+	this.Data["Files"] = links
+	this.Data["Val"] = len(links)
 }
 
 func (this *UserController) Upload() {
-	helpers.SetLayoutFor(&this.Controller)
-	//var o = helpers.GetORM()
-	var user = helpers.GetCurrentUser(&this.Controller)
-	this.TplName = "forms/upload.tpl"
-
-	if this.Ctx.Request.Method == "GET" {
-		return
-	}
-	var files, err = this.GetFiles("the_file")
-
-	if err != nil {
-		return
-	}
-	for _, header:= range files {
-		processFile(&user, header)
+	if !this.isUserLogedIn() {
+		this.Redirect("/", 302)
 	}
 
-	this.Redirect("/user/"+user.Login, 302)
+	this.TplName = "home.tpl"
+	var user = this.getCurrentUser()
+
+	if err := this.SaveFiles("file_loader", "/tmp/files"); err != nil {
+		this.Data["Error"] = err
+	} else {
+		this.Redirect("/user/"+user.Login, 302)
+	}
 }
 
 
 func (this *UserController) Download() {
 
-	fileMarker := this.Ctx.Input.Param(":name")
-	this.TplName = "index.tpl"
+	fileMarker := this.Ctx.Input.Param(":linkId")
+	this.TplName = "home.tpl"
 	this.Data["Website"] = fileMarker
 
-	var o = helpers.GetORM()
-	var user = helpers.GetCurrentUser(&this.Controller)
-	//this.Data["items"] = user.Files
+	var o = this.getORM()
+	var currentLink models.Link
+	o.QueryTable(new(models.Link)).Filter("id", fileMarker).One(&currentLink)
 
-	//var files []*models.File
-	//o.QueryTable(new(models.UserFile)).Filter("user_id", user.Id).OrderBy("upload_time").All(&files)
-	//
-	qb, _ := orm.NewQueryBuilder("mysql")
-	qb.Select(
-		"users_files.user_id",
-		"users_files.file_id",
-		"users_files.user_file_name",
-		"users_files.upload_time").
-		From("users_files").
-		InnerJoin("files").On("users_files.file_id = files.id").
-		Where("users_files.user_id = ? AND users_files.upload_time = ?")
+	var targetFile models.File
+	o.QueryTable(new(models.File)).Filter("id", currentLink.FileId).One(&targetFile)
 
-	var userFiles []models.Link
-	sql := qb.String()
-	o.Raw(sql, user.Id, fileMarker).QueryRows(&userFiles)
-	this.Data["Website"] = len(userFiles)
-	if len(userFiles) > 0 {
-		this.Data["Email"] = userFiles[0].Stored
-		this.Ctx.Output.Download(userFiles[0].Stored)
-	}
+	this.Data["Email"] = targetFile.Path
+	this.Ctx.Output.Download(targetFile.Path, targetFile.Name)
 
 	this.Redirect("/", 302)
 }
 
-func processFile(user *models.User, header *multipart.FileHeader) {
-	file, errOpen := header.Open()
-	if errOpen != nil {
-		return
+func (this *UserController) Remove() {
+	fileMarker := this.Ctx.Input.Param(":linkId")
+	this.TplName = "home.tpl"
+	var o = this.getORM()
+	var currentLink models.Link
+	o.QueryTable(new(models.Link)).Filter("id", fileMarker).One(&currentLink)
+
+	o.Delete(&currentLink)
+
+	var linkList []models.Link
+	o.QueryTable(new(models.Link)).Filter("file_id", currentLink.FileId).All(&linkList)
+
+	if len(linkList) == 0 {
+		var currentFile models.File
+		o.QueryTable(new(models.File)).Filter("id", currentLink.FileId).One(&currentFile)
+		o.Delete(&currentFile)
+		os.Remove(currentFile.Path)
 	}
-
-	newFileData, _ := ioutil.ReadAll(file)
-	var o = getORM()
-
-	var hasherMd5 = md5.New()
-	hasherMd5.Write(newFileData)
-
-	md5Hash := hex.EncodeToString(hasherMd5.Sum(nil))
-
+	this.Redirect("/", 302)
 }

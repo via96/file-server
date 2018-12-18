@@ -15,44 +15,74 @@
     <script src="/static/js/bootstrap.min.js"></script>
 </head>
 <body>
-    {{if .CurrentUser}}
-        <form action="/logout" method="POST" enctype="multipart/form-data">
-            <label>{{.CurrentUser.Login}}</label>
-            <input type="submit" value="Logout">
-        </form>
-    {{end}}
+    <div class="container-fluid">
+        <div class="row" style="background-color: #169d5d; margin-bottom: 20px;">
+            <div class="col-5">
+                <a href="/"><img src="/static/img/logo_main.png" height="60" alt="Тут должна быть картинка"></a>
+            </div>
+            <div class="col-3 offset-4">
+                {{if .CurrentUser}}
+                    <form action="/logout" method="POST" enctype="multipart/form-data">
+                        <label>{{.CurrentUser.Login}}</label>
+                        <input id="logout_btn" class="btn btn-dark" type="submit" value="Выход">
+                    </form>
+                {{end}}
+            </div>
+        </div>
 
-    {{ if .Error }}
-        <p>{{.Error}}</p>
-    {{ end }}
-    <form action="/upload" method="POST" enctype="multipart/form-data">
-        <input type="file" name="file_loader" multiple>
-        <input type="submit">
-    </form>
-    <table>
-    {{ if .Files}}
-        <thead>
-        <tr>
-            <td>File name</td>
-            <td>Upload time</td>
-            <td></td>
-            <td></td>
-        </tr>
-        </thead>
-        <tbody>
-        {{range $key, $val := .Files}}
-        <tr>
+        <div class="row" style="margin-bottom: 20px">
+            <div class="col-6 offset-3">
+                <form action="/upload" method="POST" enctype="multipart/form-data">
+                    {{ if .Error }}
+                        <p>{{.Error}}</p>
+                    {{ end }}
+                    <div align="center">
+                        <input type="file" name="file_loader" multiple>
+                        <input class="btn btn-info" type="submit" value="Загрузить">
+                    </div>
+                </form>
+            </div>
+        </div>
 
-            <td>{{$val.UserFileName}}</td>
-            <td>{{$val.UploadTime}}</td>
-            <td><a href="/download/{{$val.Id}}">Download</a></td>
+        <div class="row">
+            <div class="col-8 offset-2">
+                {{ if .Files}}
+                    <table class="table">
 
-            <td><a href="/remove/{{$val.Id}}">Remove</a></td>
-        </tr>
-        {{end}}
-        </tbody>
-    {{end}}
+                        <thead class="thead-dark">
+                        <tr>
+                            <th scope="col">Имя файла</th>
+                            <th scope="col">Время загрузки</th>
+                            <th scope="col"></th>
+                            <th scope="col"></th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        {{range $key, $val := .Files}}
+                        <tr>
 
-    </table>
+                            <td>{{$val.UserFileName}}</td>
+                            <td>{{$val.UploadTime}}</td>
+                            <td><a href="/download/{{$val.Id}}">Скачать</a></td>
+
+                            <td><a href="/remove/{{$val.Id}}">Удалить</a></td>
+                        </tr>
+                        {{end}}
+                        </tbody>
+
+
+                    </table>
+                {{ else }}
+                    <div class="alert alert-dark" role="alert">
+                        <div align="center">Список файлов пуст</div>
+                    </div>
+                {{end}}
+
+
+
+            </div>
+        </div>
+
+    </div>
 </body>
 </html>

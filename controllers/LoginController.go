@@ -48,7 +48,7 @@ func (this *LoginController) Login() {
 		curUser := this.getCurrentUser()
 		this.Redirect("/user/"+curUser.Login, 302)
 	} else {
-		this.Data["Error"] = "Неверное имя пользователя или пароль"
+		this.Data["LoginError"] = "Неверное имя пользователя или пароль"
 	}
 
 }
@@ -79,7 +79,7 @@ func (this *LoginController) Register() {
 	login = strings.ToLower(login)
 	exist := o.QueryTable(new(models.User)).Filter("login", login).Exist()
 	if exist {
-		this.Data["Error"] = "Пользователь с таким именем уже существует"
+		this.Data["RegisterError"] = "Пользователь с таким именем уже существует"
 		return
 	}
 
@@ -93,10 +93,10 @@ func (this *LoginController) Register() {
 			sess.Set("userId", id)
 			this.Redirect("/", 302)
 		} else {
-			this.Data["Error"] = err
+			this.Data["RegisterError"] = err
 		}
 
 	}else {
-		this.Data["Error"] = "Пароли не совпадают"
+		this.Data["RegisterError"] = "Пароли не совпадают"
 	}
 }

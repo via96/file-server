@@ -5,7 +5,8 @@
     <meta name="viewport"
           content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <title>File Server</title>
+    <title>BeeFileServer</title>
+    <link rel="shortcut icon" type="image/png" href="/static/img/favicon.ico"/>
     <!-- Bootstrap -->
     <link href="/static/css/bootstrap.min.css" rel="stylesheet">
     <link href="/static/css/bootstrap-theme.min.css" rel="stylesheet">
@@ -17,7 +18,9 @@
 <body>
     <div class="container-fluid">
         <div class="row" style="background-color: #169d5d; margin-bottom: 20px;">
-            <a href="/"><img src="/static/img/logo_main.png" height="60" alt="Тут должна быть картинка"></a>
+            <div class="col-5">
+                <a href="/"><img src="/static/img/logo_main.png" height="60" alt="Тут должна быть картинка"></a>
+            </div>
         </div>
 
         <div class="row">

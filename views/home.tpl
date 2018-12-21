@@ -38,7 +38,7 @@
                         <p>{{.Error}}</p>
                     {{ end }}
                     <div align="center">
-                        <input type="file" name="file_loader" multiple>
+                        <input type="file" name="file_loader">
                         <input class="btn btn-info" type="submit" value="Загрузить">
                     </div>
                 </form>

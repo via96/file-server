@@ -3,6 +3,7 @@ package controllers
 import (
 	_ "beego-fileServer/models/helpers"
 	"file-server/models"
+	"github.com/astaxie/beego"
 	_ "github.com/astaxie/beego/orm"
 	"os"
 )
@@ -51,7 +52,13 @@ func (this *UserController) Upload() {
 	this.TplName = "home.tpl"
 	var user = this.getCurrentUser()
 
-	if err := this.SaveFiles("file_loader", "/tmp/files"); err != nil {
+	targetDir := beego.AppConfig.String("fileFolderPath")
+
+	if targetDir == "" {
+		targetDir = "/tmp/files"
+	}
+
+	if err := this.SaveFile(targetDir); err != nil {
 		this.Data["Error"] = err
 	} else {
 		this.Redirect("/user/"+user.Login, 302)

@@ -16,7 +16,65 @@ type MultiController struct {
 	beego.Controller
 }
 
-func (this *MultiController) SaveFiles(fromfile, dirName string) error {
+func (this *MultiController) SaveFile(dirName string) error  {
+
+	file, header, errGet := this.GetFile("file_loader")
+
+	var user = this.getCurrentUser()
+	var o = this.getORM()
+
+	if errGet != nil {
+		return errGet
+	}
+
+	if file != nil {
+
+		file, errOpen := header.Open()
+
+		if errOpen != nil {
+			return errOpen
+		}
+
+		fileData, _ := ioutil.ReadAll(file)
+		var hasherMd5 = md5.New()
+		hasherMd5.Write(fileData)
+
+		md5Hash := hex.EncodeToString(hasherMd5.Sum(nil))
+		if dirName[len(dirName) - 1] == '/' {
+			dirName = dirName[:len(dirName)-1]
+		}
+		targetPath := dirName + "/" + md5Hash
+
+		file.Close()
+
+		var fileItem models.File
+		err := o.QueryTable(new(models.File)).Filter("hash", md5Hash).One(&fileItem)
+		if err == orm.ErrNoRows {
+			if _, err := os.Stat(dirName); os.IsNotExist(err) {
+				os.Mkdir(dirName, 0777)
+			}
+			errSave := this.SaveToFile("file_loader", "/tmp/files/" + md5Hash)
+			if errSave != nil {
+				return errSave
+			}
+
+			fileToAdd := models.File{Hash:md5Hash, Path:targetPath, UserId:user.Id, Name:header.Filename}
+			if id, err := o.Insert(&fileToAdd); err == nil{
+				fileToAdd.Id = id
+				this.linkFileToUser(&user, &fileToAdd, header.Filename)
+				return nil
+			}
+		}
+
+		if err == orm.ErrMultiRows {
+			return nil
+		}
+		this.linkFileToUser(&user, &fileItem, header.Filename)
+	}
+	return nil
+}
+
+func (this *MultiController) SaveFiles_old(fromfile, dirName string) error {
 	var files, err1 = this.GetFiles("file_loader")
 	if err1 != nil {
 		return err1

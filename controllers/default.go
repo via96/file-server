@@ -12,7 +12,7 @@ func (c *MainController) Get() {
 }
 
 func (peace *MainController) Post() {
-	peace.SaveFiles("file_loader", "/tmp/files")
+	peace.SaveFile("/tmp/files")
 	peace.Data["Vasya"] = "q"
 }
 
